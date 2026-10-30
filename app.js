@@ -9,11 +9,12 @@
   };
 
   var SETS = {
-    "1": { label: "Set 1", data: window.PREACT_DATA },
-    "2": { label: "Set 2", data: window.PREACT_DATA2 }
+    "1": { label: "Set 1", data: window.PREACT_DATA, mode: "practice" },
+    "2": { label: "Set 2", data: window.PREACT_DATA2, mode: "practice" },
+    "3": { label: "Set 3", data: window.PREACT_DATA3, mode: "timed", fullLength: true }
   };
   var currentSet = "1";
-  try { if (localStorage.getItem("preact9-set") === "2") currentSet = "2"; } catch (e) {}
+  try { var saved = localStorage.getItem("preact9-set"); if (SETS[saved]) currentSet = saved; } catch (e) {}
 
   // Best-score keys keep Set 1's original format so existing scores carry over.
   function bestKey(key, mode, set) {
@@ -73,14 +74,19 @@
     app.innerHTML = "";
     app.appendChild(el("h1", null, "Practice for the PreACT 9"));
     var intro = el("div", "intro");
-    intro.appendChild(el("p", null, "Two ways to practice each section: Practice mode gives instant feedback with an explanation after every question. Timed test mode runs at the real PreACT 9 pacing and scores you at the end."));
+    if (SETS[currentSet].fullLength) {
+      intro.appendChild(el("p", null, "Set 3 is a full-length timed mock test: each section has the official PreACT 9 Secure question count and time limit (English 44 in 35 min, Math 34 in 45, Reading 33 in 40, Science 32 in 35). Answers are scored at the end, with a full review and explanations."));
+      intro.appendChild(el("p", null, "Each section is launched and timed on its own with the question counts and time limits above. This is not a simulation of full exam administration."));
+    } else {
+      intro.appendChild(el("p", null, "Sets 1 and 2 are untimed practice: instant feedback with an explanation after every question. When you are ready for exam conditions, Set 3 is a separate full-length timed mock test."));
+    }
     intro.appendChild(el("p", null, "All questions are original and follow the official format: four answer choices per question, no penalty for guessing. Science may be optional at your school."));
-    intro.appendChild(el("p", null, "Timed mode runs shortened practice sets at official pacing. Your percent correct is practice feedback, not an ACT scaled-score estimate."));
+    intro.appendChild(el("p", null, "Your percent correct is practice feedback, not an ACT scaled-score estimate. The questions target the published PreACT 9 skills and styles, but their difficulty is not calibrated against the live exam."));
     app.appendChild(intro);
 
     var setbar = el("div", "setbar");
     setbar.appendChild(el("span", "setbar-label", "Question set"));
-    ["1", "2"].forEach(function (id) {
+    ["1", "2", "3"].forEach(function (id) {
       var tb = el("button", "btn set-toggle" + (currentSet === id ? " active" : ""), SETS[id].label);
       tb.type = "button";
       tb.onclick = function () {
@@ -90,7 +96,7 @@
       };
       setbar.appendChild(tb);
     });
-    setbar.appendChild(el("span", "setbar-note", "Each set has 66 original questions in the same format. Set 2 is all new material."));
+    setbar.appendChild(el("span", "setbar-note", "Sets 1 and 2: 66 practice questions each. Set 3: a 143-question timed mock test in four separately timed sections. Every set is all-new material - no question repeats across sets."));
     app.appendChild(setbar);
 
     var s = store();
@@ -104,17 +110,26 @@
       h.appendChild(el("span", "count", n + " questions"));
       card.appendChild(h);
       card.appendChild(el("p", null, meta.blurb));
-      var best = s[bestKey(key, "timed", currentSet)];
-      card.appendChild(el("div", "best", best ? ("Best timed score: " + best.correct + "/" + best.total + " (" + best.pct + "%)") : ""));
+      var mode = SETS[currentSet].mode;
+      var best = s[bestKey(key, mode, currentSet)];
+      card.appendChild(el("div", "best", best ? ("Best " + (mode === "timed" ? "mock test" : "practice") + " score: " + best.correct + "/" + best.total + " (" + best.pct + "%)") : ""));
+      if (mode === "practice") {
+        var legacy = s[bestKey(key, "timed", currentSet)];
+        if (legacy) card.appendChild(el("div", "best", "Earlier timed-set best: " + legacy.correct + "/" + legacy.total + " (" + legacy.pct + "%)"));
+      }
       var row = el("div", "btn-row");
-      var bp = el("button", "btn primary", "Practice");
-      bp.type = "button";
-      bp.onclick = function () { startSession(key, "practice"); };
-      var bt = el("button", "btn", "Timed set");
-      bt.type = "button";
-      bt.title = "Runs at official pacing: " + meta.officialQuestions + " questions in " + meta.officialMinutes + " minutes on the real test";
-      bt.onclick = function () { startSession(key, "timed"); };
-      row.appendChild(bp); row.appendChild(bt);
+      if (mode === "practice") {
+        var bp = el("button", "btn primary", "Practice");
+        bp.type = "button";
+        bp.onclick = function () { startSession(key, "practice"); };
+        row.appendChild(bp);
+      } else {
+        var bt = el("button", "btn primary", "Start timed test");
+        bt.type = "button";
+        bt.title = "Full-length mock: " + meta.officialQuestions + " questions in " + meta.officialMinutes + " minutes, the official count and time";
+        bt.onclick = function () { startSession(key, "timed"); };
+        row.appendChild(bt);
+      }
       card.appendChild(row);
       grid.appendChild(card);
     });
@@ -142,7 +157,7 @@
     res.appendChild(ul);
     app.appendChild(res);
 
-    var note = el("p", "mode-note", "Tip: on the real PreACT 9 you cannot return to a section once time is called, and you should answer every question. Timed mode here follows the same idea within a section.");
+    var note = el("p", "mode-note", "Tip: on the real PreACT 9 you cannot return to a section once time is called, and you should answer every question. The Set 3 mock test follows the same idea within a section.");
     app.appendChild(note);
   }
 
@@ -151,8 +166,12 @@
   var timerId = null;
 
   function startSession(key, mode) {
+    var setCfg = SETS[currentSet];
+    if (mode !== setCfg.mode) mode = setCfg.mode;
     var items = buildItems(key);
-    var totalSeconds = Math.round(secondsPerQuestion(key) * items.length);
+    var totalSeconds = setCfg.fullLength
+      ? SECTION_META[key].officialMinutes * 60
+      : Math.round(secondsPerQuestion(key) * items.length);
     session = {
       key: key, mode: mode, set: currentSet, items: items, idx: 0,
       answers: new Array(items.length).fill(null),
@@ -186,7 +205,7 @@
     if (!session) { statusEl.classList.add("hidden"); return; }
     statusEl.classList.remove("hidden");
     statusEl.innerHTML = "";
-    statusEl.appendChild(el("span", null, SECTION_META[session.key].title + (session.set === "2" ? " (Set 2)" : "") + " - " + (session.mode === "timed" ? "timed set" : "practice")));
+    statusEl.appendChild(el("span", null, SECTION_META[session.key].title + (session.set !== "1" ? " (Set " + session.set + ")" : "") + " - " + (session.mode === "timed" ? (SETS[session.set].fullLength ? "timed mock test" : "timed set") : "practice")));
     if (session.mode === "timed") {
       var t = el("span", "timer" + (session.remaining <= 60 ? " low" : ""), fmtTime(session.remaining));
       statusEl.appendChild(t);
@@ -381,7 +400,7 @@
     hero.appendChild(el("div", "big", correct + " / " + total));
     hero.appendChild(el("div", "pct", pct + "%" + (timeUp ? " - time expired" : "")));
     var meta = SECTION_META[session.key];
-    hero.appendChild(el("p", "sub", meta.title + (session.set === "2" ? " - Set 2" : "") + " - " + (session.mode === "timed" ? "shortened timed set at official pacing; percent correct, not a scaled score" : "practice mode")));
+    hero.appendChild(el("p", "sub", meta.title + (session.set !== "1" ? " - Set " + session.set : "") + " - " + (session.mode === "timed" ? (SETS[session.set].fullLength ? "full-length timed mock test at official time limits; percent correct, not a scaled score" : "shortened timed set at official pacing; percent correct, not a scaled score") : "practice mode")));
     app.appendChild(hero);
 
     var catBox = el("div", "card");
@@ -448,7 +467,7 @@
       var p = new URLSearchParams(location.search);
       var sec = p.get("section"), mode = p.get("mode");
       var set = p.get("set");
-      if (set === "1" || set === "2") currentSet = set;
+      if (SETS[set]) currentSet = set;
       if (!sec || !SECTION_META[sec]) return;
       startSession(sec, mode === "timed" ? "timed" : "practice");
       var q = parseInt(p.get("q") || "1", 10);

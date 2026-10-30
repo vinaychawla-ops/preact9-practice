@@ -1,6 +1,7 @@
 global.window = {};
 ["english", "math", "reading", "science"].forEach(function (s) { require("./data/" + s + ".js"); });
 ["english", "math", "reading", "science"].forEach(function (s) { require("./data2/" + s + ".js"); });
+["english", "math", "reading", "science"].forEach(function (s) { require("./data3/" + s + ".js"); });
 var errs = [], ids = {};
 function checkQ(q, where) {
   ["id","stem","choices","answer","explanation","category"].forEach(function(f){
@@ -33,5 +34,13 @@ function validateSet(D, name) {
 }
 validateSet(window.PREACT_DATA, "Set 1");
 validateSet(window.PREACT_DATA2, "Set 2");
+validateSet(window.PREACT_DATA3, "Set 3");
+// Set 3 must match the official PreACT 9 Secure section counts.
+var expected3 = { english: 44, math: 34, reading: 33, science: 32 };
+Object.keys(expected3).forEach(function (sec) {
+  var d = window.PREACT_DATA3[sec];
+  var n = d.passages ? d.passages.reduce(function (a, p) { return a + p.questions.length; }, 0) : d.questions.length;
+  if (n !== expected3[sec]) errs.push("Set 3 " + sec + ": expected " + expected3[sec] + " questions, found " + n);
+});
 if (errs.length) { console.log("ERRORS:\n" + errs.join("\n")); process.exit(1); }
 console.log("All checks passed.");
