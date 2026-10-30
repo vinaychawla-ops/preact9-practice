@@ -24,6 +24,17 @@ def web():
     from fastapi import FastAPI
     from fastapi.staticfiles import StaticFiles
 
+    class NoCacheStaticFiles(StaticFiles):
+        async def get_response(self, path, scope):
+            response = await super().get_response(path, scope)
+            if response.status_code == 200:
+                # Force revalidation on every load. Without this, responses go
+                # out with no Cache-Control and an epoch Last-Modified, so
+                # browsers heuristically cache the app for years and deployed
+                # updates never reach returning visitors.
+                response.headers["Cache-Control"] = "no-cache"
+            return response
+
     api = FastAPI()
-    api.mount("/", StaticFiles(directory="/site", html=True), name="site")
+    api.mount("/", NoCacheStaticFiles(directory="/site", html=True), name="site")
     return api
