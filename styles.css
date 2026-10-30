@@ -102,3 +102,6 @@ h2 { font-size: 20px; margin: 0 0 8px; }
 .resources a { color: var(--accent); font-weight: 600; text-decoration: none; }
 .resources a:hover { text-decoration: underline; }
 .res-desc { color: var(--muted); font-size: 13.5px; }
+.qstem table, .explain table { border-collapse: collapse; margin: 10px 0; font-size: 14.5px; }
+.qstem th, .qstem td, .explain th, .explain td { border: 1px solid var(--line); padding: 6px 12px; text-align: center; }
+.qstem th, .explain th { background: #f0f2f6; }

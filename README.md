@@ -1,18 +1,23 @@
 # PreACT 9 Practice
 
-A small, offline practice site for the PreACT 9 Secure test. 132 original
-questions in two sets of 66 across the four sections, in the official format
-(4 answer choices, no penalty for guessing). Use the Set 1 / Set 2 switch on
-the home screen; best timed scores are saved per set.
+A small, offline practice site for the PreACT 9 Secure test. 275 original
+questions across three sets, in the official format (4 answer choices, no
+penalty for guessing). No question repeats across sets. Best scores are saved
+per set in the browser.
 
-Each set has:
+- **Sets 1 and 2 (practice, untimed)**: 66 questions each - English 16
+  (2 essays, revise-and-edit style with "NO CHANGE"), Math 20 (through early
+  grade 10 topics), Reading 16, Science 14. Instant feedback and an
+  explanation after every question.
+- **Set 3 (full-length timed mock test)**: 143 all-new questions at the
+  official PreACT 9 Secure section counts and time limits: English 44
+  questions in 35 minutes, Math 34 in 45, Reading 33 in 40, Science 32 in
+  35. Answers are scored at the end with a full review and explanations.
 
-- English: 16 questions (2 essays, revise-and-edit style with "NO CHANGE")
-- Math: 20 questions (through early grade 10 topics)
-- Reading: 16 questions (Set 1: literary narrative + informational article;
-  Set 2: literary narrative + two short paired passages)
-- Science: 14 questions (Set 1: data table + two experiments; Set 2: data
-  table + conflicting viewpoints)
+Set 3 passage mix: 4 English essays; a literary narrative, an informational
+article, and paired short passages for Reading; data representation, research
+summaries, and conflicting viewpoints for Science (data are simulated for
+practice and labeled as such).
 
 ## How to run it
 
@@ -24,20 +29,18 @@ in this folder, then open http://localhost:8000.
 
 ## How to use it
 
-- **Practice mode**: untimed, with instant feedback and an explanation after
-  every question.
-- **Timed set mode**: a shortened practice set with a countdown at the real
-  PreACT 9 pacing (English 44q/35m, Math 34q/45m, Reading 33q/40m, Science
-  32q/35m, scaled to the number of questions here). Answers are scored at the
-  end, and you can flag questions to revisit. This is not a full-length test,
-  and the percent correct is practice feedback, not an ACT scaled-score
-  estimate.
+- **Sets 1 and 2 - Practice mode**: untimed, with instant feedback and an
+  explanation after every question.
+- **Set 3 - Timed mock test**: each section runs at its official question
+  count and time limit. Answers are scored at the end, and you can flag
+  questions to revisit. The percent correct is practice feedback, not an ACT
+  scaled-score estimate.
 - The results screen shows a per-category breakdown and a full review with
-  explanations. Best timed scores are saved in the browser, separately for
-  each set.
+  explanations. Best scores are saved in the browser, separately for each
+  set and mode.
 
-Deep links: `index.html?section=math&mode=timed` starts a section directly.
-Add `&set=2` for the second question set.
+Deep links: `index.html?section=math&set=3` starts a section directly.
+Sets 1 and 2 are practice-only; Set 3 is timed-only.
 
 ## Official ACT resources
 
@@ -53,17 +56,21 @@ The home screen also links to ACT's own free PreACT 9 Secure materials:
 
 ## Notes
 
-All questions are original and were written to match the style and difficulty
-of the PreACT 9. This site is not affiliated with ACT, Inc., and no ACT
-questions or materials are copied here. For official practice, use ACT's free
-online practice test and scoring key linked above and on the home screen.
+All questions are original and were written to match the style and published
+skill categories of the PreACT 9, but they are not calibrated against ACT's
+equating data, so Set 3's difficulty is a reasoned approximation, not a
+guaranteed match to the live exam. This site is not affiliated with ACT,
+Inc., and no ACT questions or materials are copied here. For official
+practice, use ACT's free online practice test and scoring key linked above
+and on the home screen.
 
 ## Adding questions
 
-Each section lives in `data/<section>.js` (Set 1) and `data2/<section>.js`
-(Set 2). Copy an existing question block, keep exactly 4 choices, set
-`answer` to the index (0-3) of the correct choice, and write the explanation.
-Run `node validate.js` to check both sets.
+Each section lives in `data/<section>.js` (Set 1), `data2/<section>.js`
+(Set 2), and `data3/<section>.js` (Set 3). Copy an existing question block,
+keep exactly 4 choices, set `answer` to the index (0-3) of the correct
+choice, and write the explanation. Run `node validate.js` to check all three
+sets, including the official section counts for Set 3.
 
 ## Deploy
 
